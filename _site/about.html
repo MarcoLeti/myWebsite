@@ -11,7 +11,7 @@
 
 
 
-<title>About This Website</title>
+<title>Logistic Regression</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,8 +20,8 @@
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
-<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -30,10 +30,12 @@
   }
 </style>
 <script type="text/javascript">
-if (window.hljs && document.readyState && document.readyState === "complete") {
-   window.setTimeout(function() {
-      hljs.initHighlighting();
-   }, 0);
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
 }
 </script>
 
@@ -193,12 +195,32 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">About This Website</h1>
+<h1 class="title toc-ignore">Logistic Regression</h1>
 
 </div>
 
 
-<p>More about this website.</p>
+<p>logistic regression hypothesis is defined as:</p>
+<p><span class="math inline">\(h_\theta(x) = g(\theta^Tx)\)</span></p>
+<p>where function g is the sigmoid function. The sigmoid function is defined as:</p>
+<p><span class="math inline">\(g(z) = \frac{1}{1+e^{-z}} = \frac{e^z}{1 + e^z}\)</span></p>
+<pre class="r"><code>sigmoid &lt;- function(z) {
+    g &lt;- 1 / (1 + exp(-z))
+    return(g)
+}</code></pre>
+<p>Logistic regression cost function:</p>
+<p><span class="math inline">\(J(\theta) = \frac{1}{m} \displaystyle\sum_{i=1}^{m}[-y^{(i)} \log(h_\theta(x^{(i)})) - (1 - y^{(i)}) \log(1 - h_\theta(x^{(i)}))]\)</span></p>
+<pre class="r"><code>costFunction &lt;- function(theta, X, y) {
+    m &lt;- length(y)
+    J &lt;- 0
+    grad &lt;- rep(0, length(theta))
+    
+    J &lt;- 1/m * (t(log(sigmoid(X %*% theta))) %*% -y) 
+            - t(log(1 - sigmoid(X %*% theta))) %*% (1 - y)
+    grad &lt;- 1/m * t(X) %*% (sigmoid(X %*% theta) - y)
+    
+    return(list(J = J, grad = grad))
+}</code></pre>
 
 
 
