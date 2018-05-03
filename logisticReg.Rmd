@@ -49,7 +49,7 @@ gradient <- function(theta, X, y) {
 ```
 
 ```{r}
-data <- read.csv("C:\\Projects\\StanfordMachineLearning\\machine-learning-ex2\\ex2\\ex2data1.txt")
+data <- read.csv("C:\\Git\\StanfordMachineLearning\\machine-learning-ex2\\ex2\\ex2data1.txt")
 
 colnames(data) <- c("Score1", "Score2", "Admission")
 X <- as.matrix(data)
@@ -64,11 +64,22 @@ initial_theta <- matrix(c(0, 0, 0))
 theta_optim <- optim(par = initial_theta, fn = costFunction, gr = gradient, X = X, y = y, method = "BFGS")
 ```
 
+This is the decision boundary of logistic regression that corresponds to the probability of 0.5
+```{r decisionBoundary}
+ggplot(data, aes(x = Score1, y = Score2, color = as.factor(Admission), shape = as.factor(Admission))) + geom_point(size = 2) + geom_abline(slope = (-theta_optim$par[2] / theta_optim$par[3]), intercept = (-theta_optim$par[1] / theta_optim$par[3]), colour = "blue", size = 1)
 
-```{r}
-plot_x <- c(min(X[, 2]) - 2, max(X[, 3]) + 2)
-plot_y <- (-1 / theta_optim$par[3]) * (theta_optim$par[2] * plot_x + theta_optim$par[1])
-theta_optim$par
+# theta_optim$par
 # https://stats.stackexchange.com/questions/6206/how-to-plot-decision-boundary-in-r-for-logistic-regression-model
-#http://rstudio-pubs-static.s3.amazonaws.com/320280_2a9e44636b3a4f75a7dc02bf0b167572.html
+# http://rstudio-pubs-static.s3.amazonaws.com/320280_2a9e44636b3a4f75a7dc02bf0b167572.html
+```
+
+Prediction:
+For a student with scores 45 and 85, we predict an admission
+```{r prediction}
+sigmoid(c(1, 45, 85) %*% theta_optim$par)
+```
+
+```{r accuracy}
+prediction <- sigmoid(X %*% theta_optim$par) >= 0.5
+mean(as.integer(prediction) == y) * 100
 ```
