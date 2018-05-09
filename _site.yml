@@ -5,4 +5,4 @@ navbar:
     - text: "Home"
       href: index.html
     - text: "Logistic Regression"
-      href: logisticReg.html
+      href: logisticReg2.html

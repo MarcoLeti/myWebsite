@@ -49,7 +49,7 @@ gradient <- function(theta, X, y) {
 ```
 
 ```{r}
-data <- read.csv("C:\\Git\\StanfordMachineLearning\\machine-learning-ex2\\ex2\\ex2data1.txt")
+data <- read.csv("C:\\Projects\\StanfordMachineLearning\\machine-learning-ex2\\ex2\\ex2data1.txt")
 
 colnames(data) <- c("Score1", "Score2", "Admission")
 X <- as.matrix(data)
@@ -82,4 +82,19 @@ sigmoid(c(1, 45, 85) %*% theta_optim$par)
 ```{r accuracy}
 prediction <- sigmoid(X %*% theta_optim$par) >= 0.5
 mean(as.integer(prediction) == y) * 100
+```
+
+## Regularization
+
+```{r costFunction}
+costFunction <- function(theta, X, y, lambda) {
+    m <- length(y)
+    J <- 0
+    
+    J <- 1/m * ((t(log(sigmoid(X %*% theta))) %*% (-y)) 
+            - t(log(1 - sigmoid(X %*% theta))) %*% (1 - y))
+            + lambda / (2 * m) * 
+    
+    return(J)
+}
 ```
