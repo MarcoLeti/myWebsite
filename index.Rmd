@@ -1,5 +1,5 @@
 ---
-title: "Quantitative Analysis and Machine Learning"
+title: "My Website"
 ---
 
 Hello, Website!

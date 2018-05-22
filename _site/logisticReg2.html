@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Logistic Regression</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">My Website</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="logisticReg2.html">Logistic Regression</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Logistic Regression</h1>
+
+</div>
+
+
+<p>Logistic regression is used when our response variable is qualitative, in particular it is assumed to be bernullian <span class="math inline">\(Y_i \sim Bernoulli(\mu_i)\)</span>. This means that the variable can assume the value of 0 or 1.</p>
+<p>For the analysis we will use the dataset <code>Default</code> from the <code>ISLR</code> package <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>. The dataset that contains customer default records for a credit card company.</p>
+<pre class="r"><code>library(ggplot2)
+library(ISLR)</code></pre>
+<p>Logistic regression models the probability that <span class="math inline">\(Y\)</span> belongs to a particular category. The hypothesis is defined as follow <a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>:</p>
+<p><span class="math inline">\(h_\theta(x) = g(\theta^Tx)\)</span></p>
+<p>Where function g is the sigmoid function. The sigmoid function is defined as:</p>
+<p><span class="math inline">\(g(z) = \frac{1}{1+e^{-z}} = \frac{e^z}{1 + e^z}\)</span></p>
+<pre class="r"><code>sigmoid &lt;- function(z) {
+    g &lt;- 1 / (1 + exp(-z))
+    return(g)
+}</code></pre>
+<p>To measure the performance of the model, we use cost functions, that are a measure of how badly a model is predicting our response variable. The logistic regression cost function is:</p>
+<p><span class="math inline">\(J(\theta) = \frac{1}{m} \displaystyle\sum_{i=1}^{m}[-y^{(i)} \log(h_\theta(x^{(i)})) - (1 - y^{(i)}) \log(1 - h_\theta(x^{(i)}))]\)</span></p>
+<pre class="r"><code>costFunction &lt;- function(theta, X, y) {
+    m &lt;- length(y)
+    J &lt;- 0
+    
+    J &lt;- 1/m * ((t(log(sigmoid(X %*% theta))) %*% (-y)) 
+            - t(log(1 - sigmoid(X %*% theta))) %*% (1 - y))
+    
+    return(J)
+}</code></pre>
+<p>The gradient of the cost function is the derivative of it. Gradient is used to minimize our cost function as it represent its slope.</p>
+<pre class="r"><code>gradient &lt;- function(theta, X, y) {
+    m &lt;- length(y)
+    grad &lt;- rep(0, length(theta))
+    
+    grad &lt;- 1/m * t(X) %*% (sigmoid(X %*% theta) - y)
+    return(grad)
+}</code></pre>
+<p>We upload the data and we convert into matrix because we are going to use vectorization for our calculation.</p>
+<pre class="r"><code>data(Default)
+Default$default &lt;- ifelse(Default$default == &quot;No&quot;, 0, 1)
+X &lt;- as.matrix(Default[, 3:4])
+X &lt;- cbind(matrix(rep(1, nrow(X))), X)
+y &lt;- Default[, 1]
+ggplot(Default, aes(x = balance, y = income, color = as.factor(default), shape = as.factor(default))) + geom_point()</code></pre>
+<p><img src="logisticReg2_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>The data shows defaults depending on balance and income. In order to obtain our thetas, we are going to use the built-in optimization function in R. We provide the initial values of theta (in this case all 0), the cost function to minimize and our gradient. We then select a minimization method.</p>
+<pre class="r"><code>initial_theta &lt;- matrix(c(0, 0, 0))
+theta_optim &lt;- optim(par = initial_theta, fn = costFunction, gr = gradient, X = X, y = y, method = &quot;BFGS&quot;)</code></pre>
+<p>This is the decision boundary of logistic regression that corresponds to the probability of 0.5</p>
+<pre class="r"><code>ggplot(Default, aes(x = balance, y = income, color = as.factor(default), shape = as.factor(default))) + geom_point() + geom_abline(slope = (-theta_optim$par[2] / theta_optim$par[3]), intercept = (-theta_optim$par[1] / theta_optim$par[3]), colour = &quot;blue&quot;, size = 1)</code></pre>
+<p><img src="logisticReg2_files/figure-html/decisionBoundary-1.png" width="672" /></p>
+<pre class="r"><code># theta_optim$par
+# https://stats.stackexchange.com/questions/6206/how-to-plot-decision-boundary-in-r-for-logistic-regression-model
+# http://rstudio-pubs-static.s3.amazonaws.com/320280_2a9e44636b3a4f75a7dc02bf0b167572.html</code></pre>
+<p>Prediction: For a student with scores 45 and 85, we predict an admission</p>
+<pre class="r"><code>sigmoid(c(1, 2000, 40000) %*% theta_optim$par)</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.6418613</code></pre>
+<pre class="r"><code>prediction &lt;- sigmoid(X %*% theta_optim$par) &gt;= 0.5
+mean(as.integer(prediction) == y) * 100</code></pre>
+<pre><code>## [1] 97.37</code></pre>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>My footnote<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>For formula and notation please see<a href="#fnref2">↩</a></p></li>
+</ol>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
