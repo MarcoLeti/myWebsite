@@ -1,7 +1,7 @@
 ---
 title: "Logistic Regression"
 ---
-Logistic regression is used when our response variable is qualitative, in particular it is assumed to be bernullian $Y_i \sim Bernoulli(\mu_i)$. This means that the variable can assume the value of 0 or 1.
+Logistic regression is used when our response variable is qualitative, in particular it is assumed to be bernullian $Y_i \sim Bernoulli(\mu_i)$. This means that the variable can assume the value of 1 or 0 (or True or False).
 
 For the analysis we will use the dataset `Default` from the `ISLR` package [^1]. The dataset that contains customer default records for a credit card company.
 
@@ -16,7 +16,7 @@ $h_\theta(x) = g(\theta^Tx)$
 
 Where function g is the sigmoid function. The sigmoid function is defined as:
 
-$g(z) = \frac{1}{1+e^{-z}} = \frac{e^z}{1 + e^z}$
+$g(z) = \displaystyle\frac{1}{1+e^{-z}} = \frac{e^z}{1 + e^z}$
 
 ```{r sigmoid}
 sigmoid <- function(z) {
@@ -26,7 +26,7 @@ sigmoid <- function(z) {
 
 ```
 
-To measure the performance of the model, we use cost functions, that are a measure of how badly a model is predicting our response variable. The logistic regression cost function is:
+To measure the performance of the model, we use cost functions, these are a measure of how badly a model is predicting our response variable. The logistic regression cost function is:
 
 $J(\theta) = \frac{1}{m} \displaystyle\sum_{i=1}^{m}[-y^{(i)} \log(h_\theta(x^{(i)})) - (1 - y^{(i)}) \log(1 - h_\theta(x^{(i)}))]$
 
@@ -54,7 +54,7 @@ gradient <- function(theta, X, y) {
 }
 ```
 
-We upload the data and we convert into matrix because we are going to use vectorization for our calculation.
+We upload the data and we convert it into matrix because we are going to use vectorization for our calculation.
 
 ```{r}
 data(Default)
@@ -65,33 +65,45 @@ y <- Default[, 1]
 ggplot(Default, aes(x = balance, y = income, color = as.factor(default), shape = as.factor(default))) + geom_point()
 ```
 
-The data shows defaults depending on balance and income. In order to obtain our thetas, we are going to use the built-in optimization function in R. We provide the initial values of theta (in this case all 0), the cost function to minimize and our gradient. We then select a minimization method.
+The data shows defaults depending on balance and income. In order to obtain our thetas, we are going to use the built-in optimization function in R: `optim`. As parameters, we provide the initial values of theta (in this case all 0), the cost function to minimize and our gradient. We then select a minimization method (see `?optim` for additional information).
 
 ```{r}
 initial_theta <- matrix(c(0, 0, 0))
 theta_optim <- optim(par = initial_theta, fn = costFunction, gr = gradient, X = X, y = y, method = "BFGS")
 ```
 
-This is the decision boundary of logistic regression that corresponds to the probability of 0.5
+We are now ready to plot our decision boundary obtained from logistic regression that corresponds to the probability of 0.5.
+
+To calculate slope and intercept we follow the below process:
+
+Our response variable $Y$ is equal to 1 when our hypotesis $h_\theta\geqslant0.5$, that in the case of the sigmoid function, corresponds to $z\geqslant0$. In our case we have:
+
+$\theta_0 + \theta_1 x_1 + \theta_2 x_2 \geqslant 0$
+
+solving per $x_2$ we have:
+
+$x_2\geqslant\displaystyle\frac{-\theta_0}{\theta_2} + \frac{-\theta_1}{\theta_2}x_1$
+
+where our intercept term is: $\displaystyle\frac{-\theta_0}{\theta_2}$
+
+and our slope is: $\displaystyle\frac{-\theta_1}{\theta_2}$
 
 ```{r decisionBoundary}
 ggplot(Default, aes(x = balance, y = income, color = as.factor(default), shape = as.factor(default))) + geom_point() + geom_abline(slope = (-theta_optim$par[2] / theta_optim$par[3]), intercept = (-theta_optim$par[1] / theta_optim$par[3]), colour = "blue", size = 1)
-
-# theta_optim$par
-# https://stats.stackexchange.com/questions/6206/how-to-plot-decision-boundary-in-r-for-logistic-regression-model
-# http://rstudio-pubs-static.s3.amazonaws.com/320280_2a9e44636b3a4f75a7dc02bf0b167572.html
 ```
 
-Prediction:
-For a student with scores 45 and 85, we predict an admission
+Finally we can perform some predictions. For example, we can calculate the probability that our client with a balance of 2000 and an income of 40000 dollars will not default.
+
 ```{r prediction}
 sigmoid(c(1, 2000, 40000) %*% theta_optim$par)
 ```
 
+We are going now to calculate the accuracy on our training setting to 1 all the observations for which the probability is bigger or equal than 0.5.
+
 ```{r accuracy}
 prediction <- sigmoid(X %*% theta_optim$par) >= 0.5
-mean(as.integer(prediction) == y) * 100
+cat(mean(as.integer(prediction) == y) * 100, "%")
 ```
 
-[^1]: My footnote
-[^2]: For formula and notation please see
+[^1]: James, Witten, Hastie, Tibshirani. *An Introduction to Statistical Learning.* New York: Springer-Verlag, 2013. <http://www-bcf.usc.edu/~gareth/ISL/index.html>
+[^2]: For formula and notation please see: Ng, Andrew. *Machine Learning*. Stanford University. Online course provided by Coursera. <https://www.coursera.org/learn/machine-learning>. 

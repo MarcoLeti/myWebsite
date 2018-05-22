@@ -1,0 +1,133 @@
+---
+title: "Logistic Regression Regularized"
+---
+
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(mlbench)
+```
+
+```{r sigmoid}
+data <- mlbench.ringnorm(100, d = 2)
+
+data <- data.frame(data$x[, 1], data$x[, 2], as.numeric(data$classes))
+data[, 3] <- ifelse(data[, 3] == 1, 0, 1)
+
+colnames(data) <- c("Test1", "Test2", "QAResult")
+```
+logistic regression hypothesis is defined as:
+
+$h_\theta(x) = g(\theta^Tx)$
+
+where function g is the sigmoid function. The sigmoid function is defined as:
+
+$g(z) = \frac{1}{1+e^{-z}} = \frac{e^z}{1 + e^z}$
+
+```{r sigmoidreg}
+sigmoid <- function(z) {
+    g <- 1 / (1 + exp(-z))
+    return(g)
+}
+
+```
+
+Logistic regression cost function:
+
+$J(\theta) = \frac{1}{m} \displaystyle\sum_{i=1}^{m}[-y^{(i)} \log(h_\theta(x^{(i)})) - (1 - y^{(i)}) \log(1 - h_\theta(x^{(i)}))]$
+
+```{r costFunction}
+costFunction <- function(theta, X, y, lambda) {
+    m <- length(y)
+    J <- 0
+    
+    J <- 1/m * ((t(log(sigmoid(X %*% theta))) %*% (-y)) -
+            t(log(1 - sigmoid(X %*% theta))) %*% (1 - y)) +
+            lambda / (2 * m) * sum(theta[2:length(theta)] ^ 2)
+    return(J)
+}
+```
+
+```{r gradient}
+gradient <- function(theta, X, y, lambda) {
+    m <- length(y)
+    grad <- rep(0, length(theta))
+    
+    grad <- 1/m * t(X) %*% (sigmoid(X %*% theta) - y) +
+            rbind(0, matrix((lambda/m) * theta[2:length(theta)]))
+    return(grad)
+}
+```
+
+```{r}
+X <- as.matrix(data)
+y <- X[, 3]
+X <- X[, 1:2]
+##ggplot(data, aes(x = Test1, y = Test2, color = as.factor(QAResult), shape = as.factor(QAResult))) + geom_point(size = 2)
+```
+
+```{r}
+ggplot(data, aes(x = Test1, y = Test2, color = as.factor(QAResult), shape = as.factor(QAResult))) + geom_point(size = 2)
+```
+
+```{r mapFeature}
+mapFeature <- function(X1, X2) {
+    degree <- 6
+    out <- matrix(rep(1, length(X1)))
+    for (i in 1:degree) {
+        for (j in 0:i) {
+            out <- cbind(out, (X1 ^ (i-j)) * (X2 ^ j))
+        }
+    }
+    return(out)
+}
+
+```
+
+```{r}
+X <- mapFeature(X[, 1], X[, 2])
+```
+
+```{r}
+initial_theta <- matrix(rep(0, ncol(X)))
+lambda <- 1
+theta_optim <- optim(par = initial_theta, fn = costFunction, gr = gradient, X = X, y = y, lambda = lambda, method = "BFGS")
+```
+
+This is the decision boundary of logistic regression that corresponds to the probability of 0.5
+```{r decisionBoundary}
+u <- v <- seq(min(data), max(data), length.out = 100)
+z <- matrix(0, nrow =length(u), ncol = length(v))
+for (i in 1:length(u)) {
+    for (j in 1:length(v)) {
+        z[i, j] <- mapFeature(u[i], v[j]) %*% theta_optim$par
+    }
+}
+```
+
+Prediction:
+For a student with scores 45 and 85, we predict an admission
+#```{r prediction}
+#sigmoid(c(1, 45, 85) %*% theta_optim$par)
+#```
+
+#```{r accuracy}
+#prediction <- sigmoid(X %*% theta_optim$par) >= 0.5
+#mean(as.integer(prediction) == y) * 100
+#```
+
+
+```{r}
+rownames(z) <- seq(min(data), max(data), length.out = 100)
+colnames(z) <- seq(min(data), max(data), length.out = 100)
+
+as.data.frame(z) %>% 
+  rownames_to_column() %>% 
+  gather(key, value, -rowname) %>% 
+  mutate(key = as.numeric(key), 
+         rowname = as.numeric(rowname)) %>%
+  ggplot() + geom_contour(aes(x = rowname, y = key, z = value), bins = 1) + 
+    geom_point(data=data, aes(x = Test1, y = Test2, color = as.factor(QAResult),
+                              shape = as.factor(QAResult)), size = 2)
+```

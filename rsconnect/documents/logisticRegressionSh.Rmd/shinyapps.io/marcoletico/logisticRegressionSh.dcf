@@ -1,0 +1,13 @@
+name: logisticRegressionSh
+title: logisticRegressionSh
+username:
+account: marcoletico
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 342105
+bundleId: 1371117
+url: https://marcoletico.shinyapps.io/logisticRegressionSh/
+when: 1526201302.26765
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: logisticReg.Rmd|logisticReg2.Rmd|logisticRegRegular.Rmd|logisticRegRegular_mydata.Rmd|logisticRegression.Rmd|README.md|_site
