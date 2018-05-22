@@ -1,8 +1,13 @@
-name: "my-website"
+name: "Quantitative Analysis and Machine Learning"
 navbar:
-  title: "My Website"
-  left:
+  title: "Quantitative Analysis and Machine Learning"
+  right:
     - text: "Home"
       href: index.html
-    - text: "Logistic Regression"
-      href: logisticReg2.html
+    - text: "Machine Learning"
+      menu:
+        - text: "Logistic Regression"
+          href: logisticRegressionSh.html
+    - icon: fa-github fa-lg
+      href: http://github.com/MarcoLeti/
+output_dir: "./Website_files"

@@ -3,10 +3,19 @@ title: "Logistic Regression Regularized"
 ---
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(ggplot2)
+library(tidyverse)
+library(mlbench)
 ```
 
+```{r sigmoid}
+data <- mlbench.ringnorm(1000, d = 2)
+
+data <- matrix(cbind(data$x[, 1], data$x[, 2], as.numeric(data$classes)),
+               ncol = 3)
+data[, 3] <- ifelse(data[, 3] == 1, 0, 1)
+```
 logistic regression hypothesis is defined as:
 
 $h_\theta(x) = g(\theta^Tx)$
@@ -84,7 +93,7 @@ X <- mapFeature(X[, 1], X[, 2])
 
 ```{r}
 initial_theta <- matrix(rep(0, ncol(X)))
-lambda <- 1
+lambda <- 100
 theta_optim <- optim(par = initial_theta, fn = costFunction, gr = gradient, X = X, y = y, lambda = lambda, method = "BFGS")
 ```
 
@@ -107,15 +116,26 @@ for (i in 1:length(u)) {
 
 Prediction:
 For a student with scores 45 and 85, we predict an admission
-```{r prediction}
-sigmoid(c(1, 45, 85) %*% theta_optim$par)
-```
+#```{r prediction}
+#sigmoid(c(1, 45, 85) %*% theta_optim$par)
+#```
 
-```{r accuracy}
-prediction <- sigmoid(X %*% theta_optim$par) >= 0.5
-mean(as.integer(prediction) == y) * 100
-```
+#```{r accuracy}
+#prediction <- sigmoid(X %*% theta_optim$par) >= 0.5
+#mean(as.integer(prediction) == y) * 100
+#```
+
 
 ```{r}
-ggplot(data, aes(x = Test1, y = Test2, color = as.factor(QAResult), shape = as.factor(QAResult))) + geom_point(size = 2) + geom_contour(aes(x = u, y = v, z = z))
+rownames(z) <- seq(from = -1, to = 1.5, length.out = 100)
+colnames(z) <- seq(from = -1, to = 1.5, length.out = 100)
+
+as.data.frame(z) %>% 
+  rownames_to_column() %>% 
+  gather(key, value, -rowname) %>% 
+  mutate(key = as.numeric(key), 
+         rowname = as.numeric(rowname)) %>%
+  ggplot() + geom_contour(aes(x = rowname, y = key, z = value), bins = 1) + 
+    geom_point(data=data, aes(x = Test1, y = Test2, color = as.factor(QAResult),
+                              shape = as.factor(QAResult)), size = 2)
 ```
